@@ -1,0 +1,9 @@
+=========================================
+File System & File Management OS Project
+=========================================
+
+This project demonstrates core operating system file management concepts:
+1. Hierarchical Directory Structure & Path Navigation
+2. Metadata & Attributes (size, timestamps, extensions)
+3. Sandbox Security (Path Traversal & Symlink Resolution)
+4. System Calls: Directory Listing, File Read/Write, Rename, Unlink

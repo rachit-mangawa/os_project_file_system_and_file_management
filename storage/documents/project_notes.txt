@@ -1,0 +1,6 @@
+Project: Web-based OS File Manager
+Features verified:
+- Directory traversal protection (resolve_safe_path)
+- File CRUD operations
+- Recursive file search
+- Metadata extraction using os.stat
