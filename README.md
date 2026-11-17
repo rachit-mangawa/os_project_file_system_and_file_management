@@ -1,81 +1,88 @@
 # File System & File Management
 
-A lightweight web-based file manager and terminal interface demonstrating operating system file management concepts over an isolated disk sandbox (`storage/`).
+A web-based file manager and terminal running over an isolated sandbox folder (`storage/`). Built as an OS course project to show how real operating system concepts (inodes, block allocation, internal fragmentation, path safety, and system calls) map to practical software.
 
-Built for the 7th Semester OS course project. Runs entirely on `127.0.0.1:8000` with zero cloud dependencies, build tools, or frontend frameworks.
+Runs locally on `127.0.0.1:8000`. No build tools, external CSS/JS libraries, or database engines required.
 
 ---
 
-## Quick Start (Windows)
+## Running the Project
 
-Double-click `run.bat` or execute in PowerShell / Command Prompt:
+Double-click `run.bat` or run it from the terminal:
 
 ```cmd
 .\run.bat
 ```
 
-`run.bat` handles everything:
-1. Clears any stale process holding port `8000` to avoid bind conflicts (`Errno 10048`).
-2. Detects `uv` (or falls back to standard Python `venv`).
-3. Installs backend dependencies (`fastapi`, `uvicorn`, `python-multipart`).
-4. Launches the server and opens `http://127.0.0.1:8000` in your default browser.
+What `run.bat` does:
+1. Stops any older process still listening on port 8000 to prevent port binding errors.
+2. Checks for `uv` (creates `.venv` and runs `uv pip install`) or falls back to standard Python `venv`.
+3. Installs the required packages: `fastapi`, `uvicorn`, and `python-multipart`.
+4. Opens `http://127.0.0.1:8000` in your browser and starts the backend.
+
+Closing the terminal window shuts down the server.
 
 ---
 
-## Project Structure
+## Directory Structure
 
 ```
 project_work/
-├── main.py        # Single-file backend (FastAPI, os, pathlib, shutil)
-├── index.html     # Single-file frontend (Vanilla HTML5, CSS3, ES6 JS)
-├── run.bat        # Automated one-click bootstrap script
-├── storage/       # Active sandbox directory (sample files included)
+├── main.py        # FastAPI app, API routing, and HTTP endpoints
+├── fs.py          # Filesystem logic, safe path resolution, block allocation, tree builder
+├── terminal.py    # Command parsing and dispatch for interactive terminal actions
+├── index.html     # Single-page interface: sidebar tree, terminal, and file table
+├── run.bat        # Bootstrap script (dependency check, port cleanup, launch)
+├── storage/       # Sandbox directory where all file operations happen
 │   ├── demo.py
 │   ├── welcome.txt
 │   └── documents/
 │       └── project_notes.txt
-├── README.md      # Project overview and run guide
-└── report.md      # Complete OS technical report and viva defense guide
+├── README.md      # Setup and project documentation
+└── report.md      # Technical project report and system architecture
 ```
 
 ---
 
-## Core Features
+## Features
 
-### 1. GUI File Manager
-- **Directory Navigation:** Breadcrumb trail and parent (`..`) navigation.
-- **File CRUD:** Create folder, upload file, download file, rename, and delete (with UI confirmation).
-- **In-Browser Text Editor:** Open, edit, and save UTF-8 text and script files directly.
-- **Search:** Case-insensitive recursive name search across the entire sandbox.
-- **Properties & Metadata Inspector:** Inspects logical file size, physical disk allocation, internal fragmentation (slack space), POSIX permissions, octal modes, timestamps, and full system paths via `os.stat()`.
+### GUI File Manager
+- Breadcrumb path navigation and one-click `..` navigation to parent folders.
+- File and folder creation, file uploads, and downloads.
+- Renaming and deletions, with browser confirmation before deleting anything.
+- In-browser UTF-8 text file editor with save capability.
+- Search bar that recursively scans names inside the sandbox.
+- Properties modal showing file size, 4 KB block allocation, slack space (internal fragmentation), timestamps, and permissions.
 
-### 2. Live Directory Tree (Side Panel)
-- Live recursive tree of `storage/` separating folders (`📁`) and files (`📄`).
-- Highlights active directory; clicking any folder changes directory.
-- Refreshes automatically on every file change.
+### Live Directory Tree
+- Left-hand side panel showing the nested hierarchy of `storage/`.
+- Highlights the current working folder.
+- Clicking any directory in the tree navigates directly into it.
+- Automatically reloads whenever files or folders are changed.
 
-### 3. Integrated Terminal & CLI
-Interactive command bar supporting bash-like operations with Tab autocompletion:
-- `mkdir <name>` — Create directory (`os.mkdir`).
-- `cd <path>` — Change working directory (`cd ..` moves up, `cd /` returns to root).
-- `touch <name>` / `create <name>` — Create an empty file (`Path.touch`).
-- `write <name> <text>` — Overwrite file content with text.
-- `write <name> @<offset> <text>` — Low-level write at a specific byte offset (`f.seek(offset)`).
-- `cat <name>` / `read <name>` — Output entire file.
-- `read <name> <start> <size>` — Sliced byte read (`f.seek(start)`, `f.read(size)`).
-- `cp <src> <dst>` — Copy file (`shutil.copy2`) or directory tree (`shutil.copytree`).
-- `mv <src> <dst>` — Move or rename (`Path.rename`).
-- `rm <name>` / `delete <name>` — Remove file (`unlink`) or directory (`shutil.rmtree`).
-- `truncate <name> <max_size>` — Adjust file size directly (`f.truncate(max_size)`).
-- `memmap` — Displays block allocation table (4 KB cluster units) and internal fragmentation summary.
-- `reset` — Purges temporary files and restores `storage/` to initial sample state.
-- `clear` — Clears terminal log output.
+### Integrated Terminal
+A command line right above the file table with quick action buttons and Tab autocompletion:
+- `mkdir <name>`: Create a directory
+- `cd <path>`: Change directory (`cd ..` moves up, `cd /` returns to root)
+- `touch <name>` / `create <name>`: Create an empty file
+- `write <name> <text>`: Overwrite file with text
+- `write <name> @<offset> <text>`: Write text at a specific byte position (`f.seek(offset)`)
+- `cat <name>` / `read <name>`: Read and display file contents
+- `read <name> <start> <size>`: Read a byte range from a file
+- `cp <src> <dst>`: Copy a file or directory
+- `mv <src> <dst>`: Move or rename an item
+- `rm <name>` / `delete <name>`: Delete a file or directory
+- `truncate <name> <size>`: Cut or expand file size directly via OS truncate
+- `memmap`: Print a table of all files, their 4 KB cluster blocks, and slack bytes
+- `reset`: Wipe temporary test files and reset `storage/` back to default sample files
+- `clear`: Clear the terminal log area
 
 ---
 
-## Security: Sandbox Enforcement
+## Sandbox Security (`resolve_safe_path`)
 
-All incoming paths pass through `resolve_safe_path()`:
+All file operations run through one path resolver in `fs.py`:
+
 ```python
 def resolve_safe_path(user_path: str = "") -> Path:
     cleaned = user_path.strip().lstrip("/\\")
@@ -85,30 +92,33 @@ def resolve_safe_path(user_path: str = "") -> Path:
         raise HTTPException(status_code=400, detail="Access denied: Path is outside the sandbox.")
     return resolved
 ```
-1. Strips leading slashes so `Path / user_input` does not treat input as a filesystem root.
-2. Canonicalizes `..`, `.`, and resolves symlinks to their physical disk target via `Path.resolve()`.
-3. Verifies that `storage/` is an ancestor of the target.
-4. Throws an HTTP 400 error immediately if traversal is detected.
+
+How it works:
+1. Strips leading slashes so Python's `Path` join does not treat the input as a drive root.
+2. Calls `.resolve()` to normalize all `.` and `..` segments and trace symlinks to their actual filesystem target.
+3. Checks that the target is inside `storage/` or is `storage/` itself.
+4. Throws HTTP 400 if a path attempts to escape the folder.
 
 ---
 
-## OS Concepts Implemented
+## Operating System Call Mappings
 
-| OS Concept | Implementation | Underlying OS Call |
+| Feature | Implementation in Code | Underlying OS System Call |
 |---|---|---|
-| **Hierarchical Directory Tree** | Recursive traversal (`build_tree`) | `opendir`, `readdir` |
-| **Directory Navigation** | Breadcrumb navigation and `cd` | Directory lookup |
-| **File Deletion** | File removal vs recursive tree removal | `unlink`, `rmdir` |
-| **Byte-Level I/O & Seek** | Offset writes and slice reads | `lseek`, `read`, `write` |
-| **File Truncation** | Direct size reduction/expansion | `truncate` |
-| **Cluster Allocation** | Calculating 4 KB units (`(size + 4095) // 4096`) | File system block sizing |
-| **Internal Fragmentation** | Slack space = `allocated_bytes - size` | Cluster tail slack |
-| **Metadata Extraction** | File attributes and timestamps | `stat` / `fstat` |
-| **Protection & Modes** | Read-only flag on Windows, octal permissions | `st_mode` bitmask |
+| Directory listing | `Path.iterdir()` / `os.scandir()` | `opendir`, `readdir` |
+| Directory creation | `Path.mkdir()` | `mkdir` |
+| File creation | `Path.touch()` / `open(..., 'wb')` | `open(O_CREAT)` |
+| File deletion | `Path.unlink()` | `unlink` |
+| Folder deletion | `shutil.rmtree()` | `rmdir` (recursive) |
+| Moving / renaming | `Path.rename()` | `rename` |
+| Offset write / read | `f.seek(offset)` | `lseek` |
+| File truncation | `f.truncate(size)` | `truncate` |
+| Metadata lookup | `os.stat()` / `Path.stat()` | `stat` |
 
 ---
 
-## Tech Stack
+## Technical Details
 
-- **Backend:** Python 3.10+, FastAPI, Uvicorn, standard library (`os`, `pathlib`, `shutil`, `datetime`).
-- **Frontend:** Single `index.html` with vanilla HTML5, CSS3, and ES6 JavaScript (`fetch` API). No external CDNs, npm packages, or build dependencies.
+- **Backend:** Python 3.10+, FastAPI, Uvicorn, Python standard library (`os`, `pathlib`, `shutil`, `datetime`).
+- **Frontend:** Single `index.html` with vanilla HTML, CSS, and JavaScript (`fetch` API).
+- **Network:** Bound strictly to `127.0.0.1:8000` (loopback only).
