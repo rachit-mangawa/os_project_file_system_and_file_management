@@ -38,8 +38,7 @@ project_work/
 │   ├── welcome.txt
 │   └── documents/
 │       └── project_notes.txt
-├── README.md      # Setup and project documentation
-└── report.md      # Technical project report and system architecture
+└── README.md      # Setup and project documentation
 ```
 
 ---

@@ -6,1065 +6,414 @@
   <title>File System & File Management</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background: #f1f5f9;
-      color: #0f172a;
-      padding: 16px;
-      line-height: 1.45;
-    }
-    .wrapper {
-      max-width: 1200px;
-      margin: 0 auto;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f1f5f9; color: #0f172a; padding: 14px; }
+    .wrapper { max-width: 1180px; margin: 0 auto; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-    /* Top Bar */
-    .top-bar {
-      background: #0f172a;
-      color: #f8fafc;
-      padding: 12px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .top-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .top-title h1 {
-      font-size: 1.05rem;
-      font-weight: 600;
-    }
-    .sandbox-tag {
-      font-size: 0.75rem;
-      background: #1e293b;
-      color: #38bdf8;
-      padding: 2px 8px;
-      border-radius: 4px;
-      border: 1px solid #334155;
-      font-family: monospace;
-    }
-    .top-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    /* Header */
+    header { background: #0f172a; color: #f8fafc; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    header h1 { font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .tag { font-size: 0.75rem; background: #1e293b; color: #38bdf8; padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid #334155; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
 
-    /* Standard Buttons & Inputs */
-    input[type="text"], input[type="search"] {
-      padding: 6px 10px;
-      font-size: 0.85rem;
-      border: 1px solid #cbd5e1;
-      border-radius: 5px;
-      outline: none;
-    }
-    input[type="text"]:focus, input[type="search"]:focus {
-      border-color: #0284c7;
-    }
-    .btn {
-      padding: 6px 12px;
-      font-size: 0.82rem;
-      font-weight: 500;
-      border-radius: 5px;
-      border: 1px solid transparent;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-    }
+    /* Inputs & Buttons */
+    input[type="text"], input[type="search"] { padding: 5px 10px; font-size: 0.85rem; border: 1px solid #cbd5e1; border-radius: 4px; outline: none; }
+    input:focus { border-color: #0284c7; }
+    .btn { padding: 5px 10px; font-size: 0.82rem; border-radius: 4px; border: 1px solid transparent; cursor: pointer; font-weight: 500; }
     .btn-primary { background: #0284c7; color: #fff; }
     .btn-primary:hover { background: #0369a1; }
-    .btn-secondary { background: #e2e8f0; color: #1e293b; }
-    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-subtle { background: #e2e8f0; color: #1e293b; }
+    .btn-subtle:hover { background: #cbd5e1; }
     .btn-danger { background: #fee2e2; color: #991b1b; }
     .btn-danger:hover { background: #fecaca; }
-    .btn-sm { padding: 3px 8px; font-size: 0.76rem; }
-
-    /* Toast */
-    .toast {
-      display: none;
-      padding: 8px 16px;
-      font-size: 0.84rem;
-      font-weight: 500;
-    }
-    .toast.error { background: #fef2f2; color: #b91c1c; border-bottom: 1px solid #fecaca; }
-    .toast.success { background: #f0fdf4; color: #15803d; border-bottom: 1px solid #bbf7d0; }
+    .btn-sm { padding: 2px 7px; font-size: 0.75rem; }
 
     /* Layout */
-    .main-layout {
-      display: flex;
-      min-height: 580px;
-    }
+    .layout { display: flex; min-height: 540px; }
+    aside { width: 230px; background: #f8fafc; border-right: 1px solid #e2e8f0; padding: 10px; display: flex; flex-direction: column; flex-shrink: 0; }
+    .aside-title { font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .tree { overflow-y: auto; flex: 1; font-size: 0.82rem; }
+    .tree-item { padding: 3px 6px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px; color: #334155; }
+    .tree-item:hover { background: #e2e8f0; }
+    .tree-item.active { background: #e0f2fe; color: #0369a1; font-weight: 600; }
+    main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-    /* Tree Sidebar */
-    .sidebar {
-      width: 240px;
-      flex-shrink: 0;
-      background: #f8fafc;
-      border-right: 1px solid #e2e8f0;
-      padding: 12px 8px;
-      display: flex;
-      flex-direction: column;
-    }
-    .sidebar-header {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 8px;
-      padding: 0 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .tree-list {
-      overflow-y: auto;
-      flex: 1;
-      max-height: 700px;
-    }
-    .tree-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 6px;
-      border-radius: 4px;
-      font-size: 0.82rem;
-      color: #334155;
-      cursor: pointer;
-      user-select: none;
-    }
-    .tree-row:hover {
-      background: #e2e8f0;
-    }
-    .tree-row.active {
-      background: #e0f2fe;
-      color: #0369a1;
-      font-weight: 600;
-    }
-    .tree-row.file {
-      color: #64748b;
-    }
-
-    /* Content Area */
-    .content-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* Terminal Section */
-    .terminal-box {
-      background: #0f172a;
-      color: #e2e8f0;
-      padding: 12px 16px;
-      border-bottom: 1px solid #cbd5e1;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .terminal-bar-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.75rem;
-      color: #94a3b8;
-    }
-    .quick-cmds {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      align-items: center;
-    }
-    .quick-btn {
-      background: #1e293b;
-      color: #cbd5e1;
-      border: 1px solid #334155;
-      padding: 3px 8px;
-      font-size: 0.74rem;
-      border-radius: 4px;
-      font-family: monospace;
-      cursor: pointer;
-    }
-    .quick-btn:hover {
-      background: #0284c7;
-      color: #fff;
-      border-color: #0284c7;
-    }
-    .quick-btn.reset-btn {
-      color: #fca5a5;
-      border-color: #7f1d1d;
-    }
-    .quick-btn.reset-btn:hover {
-      background: #b91c1c;
-      color: #fff;
-    }
-
-    .cmd-line {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: #020617;
-      border: 1px solid #334155;
-      border-radius: 5px;
-      padding: 4px 8px;
-    }
-    .prompt-char {
-      color: #38bdf8;
-      font-family: monospace;
-      font-weight: bold;
-      user-select: none;
-    }
-    #cmdInput {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: #fff;
-      font-family: monospace;
-      font-size: 0.85rem;
-    }
-    .chips-line {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      min-height: 20px;
-    }
-    .cmd-chip {
-      background: #1e293b;
-      color: #94a3b8;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-size: 0.72rem;
-      font-family: monospace;
-      cursor: pointer;
-    }
-    .cmd-chip:hover {
-      background: #0284c7;
-      color: #fff;
-    }
-
-    .terminal-logs {
-      background: #020617;
-      border: 1px solid #1e293b;
-      border-radius: 5px;
-      padding: 8px 10px;
-      font-family: monospace;
-      font-size: 0.8rem;
-      line-height: 1.4;
-      max-height: 140px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-    }
-    .terminal-logs::-webkit-scrollbar { width: 6px; }
-    .terminal-logs::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-
-    .log-cmd { color: #38bdf8; font-weight: 600; margin-top: 6px; }
-    .log-cmd:first-child { margin-top: 0; }
-    .log-out { color: #cbd5e1; }
+    /* Terminal */
+    .terminal { background: #0f172a; color: #e2e8f0; padding: 10px 14px; border-bottom: 1px solid #cbd5e1; display: flex; flex-direction: column; gap: 6px; }
+    .shortcuts { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .quick-btn { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 2px 7px; font-size: 0.72rem; border-radius: 3px; font-family: monospace; cursor: pointer; }
+    .quick-btn:hover { background: #0284c7; color: #fff; }
+    .quick-btn.danger { color: #fca5a5; border-color: #7f1d1d; }
+    .cmd-bar { display: flex; gap: 6px; background: #020617; border: 1px solid #334155; border-radius: 4px; padding: 4px 8px; align-items: center; }
+    .prompt { color: #38bdf8; font-family: monospace; font-weight: bold; }
+    #cmdInput { flex: 1; background: transparent; border: none; color: #fff; font-family: monospace; font-size: 0.84rem; outline: none; }
+    .term-out { background: #020617; border: 1px solid #1e293b; border-radius: 4px; padding: 8px; font-family: monospace; font-size: 0.8rem; line-height: 1.4; max-height: 130px; overflow-y: auto; white-space: pre-wrap; }
+    .log-cmd { color: #38bdf8; font-weight: 600; margin-top: 4px; }
     .log-err { color: #f87171; }
+    .log-msg { color: #cbd5e1; }
 
-    /* Breadcrumbs Toolbar */
-    .nav-bar {
-      padding: 8px 16px;
-      background: #f8fafc;
-      border-bottom: 1px solid #e2e8f0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-    .breadcrumbs {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.86rem;
-      color: #64748b;
-    }
-    .crumb {
-      color: #0284c7;
-      cursor: pointer;
-      font-weight: 500;
-    }
-    .crumb:hover { text-decoration: underline; }
-    .crumb.current { color: #0f172a; cursor: default; font-weight: 600; text-decoration: none; }
-
-    /* File Table */
-    .table-box {
-      flex: 1;
-      overflow-x: auto;
-      background: #fff;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.84rem;
-    }
-    th {
-      text-align: left;
-      padding: 8px 14px;
-      background: #f8fafc;
-      color: #475569;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      border-bottom: 1px solid #cbd5e1;
-    }
-    td {
-      padding: 8px 14px;
-      border-bottom: 1px solid #f1f5f9;
-      vertical-align: middle;
-    }
+    /* File Table & Breadcrumbs */
+    .nav { padding: 6px 14px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; font-size: 0.84rem; }
+    .crumbs a { color: #0284c7; text-decoration: none; cursor: pointer; font-weight: 500; }
+    .crumbs span { color: #0f172a; font-weight: 600; }
+    .table-wrap { flex: 1; overflow: auto; background: #fff; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    th { text-align: left; padding: 7px 12px; background: #f8fafc; color: #475569; font-size: 0.74rem; font-weight: 600; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; }
+    td { padding: 7px 12px; border-bottom: 1px solid #f1f5f9; }
     tr:hover td { background: #f8fafc; }
-    .item-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      color: #0f172a;
-      font-weight: 500;
-    }
-    .item-label:hover { color: #0284c7; }
-    .action-group {
-      display: flex;
-      gap: 4px;
-      justify-content: flex-end;
-    }
-    .empty-text {
-      padding: 30px;
-      text-align: center;
-      color: #64748b;
-      font-size: 0.88rem;
-    }
+    .actions { display: flex; gap: 4px; justify-content: flex-end; }
 
-    /* Modal */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.4);
-      z-index: 50;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-    .modal-overlay.active { display: flex; }
-    .modal-box {
-      background: #fff;
-      border-radius: 6px;
-      width: 100%;
-      max-width: 640px;
-      max-height: 90vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    }
-    .modal-top {
-      padding: 12px 16px;
-      background: #f8fafc;
-      border-bottom: 1px solid #e2e8f0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .modal-top h3 { font-size: 0.95rem; }
-    .modal-content {
-      padding: 14px 16px;
-      overflow-y: auto;
-    }
-    .modal-content textarea {
-      width: 100%;
-      height: 320px;
-      font-family: monospace;
-      font-size: 0.86rem;
-      border: 1px solid #cbd5e1;
-      border-radius: 5px;
-      padding: 8px;
-      outline: none;
-    }
-    .modal-content textarea:focus { border-color: #0284c7; }
-    .modal-bottom {
-      padding: 10px 16px;
-      background: #f8fafc;
-      border-top: 1px solid #e2e8f0;
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-    .prop-item {
-      display: flex;
-      padding: 6px 0;
-      border-bottom: 1px solid #f1f5f9;
-      font-size: 0.84rem;
-    }
-    .prop-item:last-child { border-bottom: none; }
-    .prop-k { width: 140px; font-weight: 600; color: #64748b; flex-shrink: 0; }
-    .prop-v { flex: 1; color: #0f172a; word-break: break-all; }
+    /* Modals & Toasts */
+    .toast { position: fixed; top: 18px; right: 18px; padding: 8px 14px; border-radius: 4px; font-size: 0.82rem; font-weight: 500; z-index: 99; display: none; }
+    .toast.err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .toast.ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.4); z-index: 50; align-items: center; justify-content: center; padding: 14px; }
+    .modal.open { display: flex; }
+    .modal-card { background: #fff; border-radius: 6px; width: 100%; max-width: 600px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+    .modal-head { padding: 10px 14px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .modal-body { padding: 12px 14px; overflow-y: auto; }
+    .modal-foot { padding: 8px 14px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 6px; }
+    .prop-row { display: flex; padding: 5px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.82rem; }
+    .prop-k { width: 140px; font-weight: 600; color: #64748b; }
+    .prop-v { flex: 1; word-break: break-all; }
   </style>
 </head>
 <body>
 
 <div class="wrapper">
-  <!-- Top Bar -->
-  <div class="top-bar">
-    <div class="top-title">
-      <h1>File System & File Management</h1>
-      <span class="sandbox-tag">sandbox: storage/</span>
-    </div>
-    <div class="top-controls">
-      <input type="search" id="searchInput" placeholder="Search files..." style="width: 180px;">
-      <button class="btn btn-secondary btn-sm" onclick="promptNewFolder()">+ Folder</button>
+  <header>
+    <h1>File System & File Management <span class="tag">sandbox: storage/</span></h1>
+    <div class="header-actions">
+      <input type="search" id="search" placeholder="Search files..." style="width: 160px;" oninput="onSearch(event)">
+      <button class="btn btn-subtle btn-sm" onclick="promptNewFolder()">+ Folder</button>
       <button class="btn btn-primary btn-sm" onclick="document.getElementById('fileUpload').click()">+ Upload</button>
-      <input type="file" id="fileUpload" style="display:none;" onchange="uploadSelectedFile(event)">
+      <input type="file" id="fileUpload" style="display:none;" onchange="uploadFile(event)">
     </div>
-  </div>
+  </header>
 
-  <div id="toast" class="toast"></div>
-
-  <!-- Workspace -->
-  <div class="main-layout">
-    <!-- Left Directory Tree -->
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <span>Folders & Files</span>
-        <button class="btn btn-secondary btn-sm" style="padding: 1px 6px; font-size: 0.7rem;" onclick="loadTree()">Reload</button>
+  <div class="layout">
+    <aside>
+      <div class="aside-title">
+        <span>Directory Tree</span>
+        <button class="btn btn-subtle btn-sm" onclick="loadTree()">Reload</button>
       </div>
-      <div class="tree-list" id="treeList"></div>
-    </div>
+      <div class="tree" id="tree"></div>
+    </aside>
 
-    <!-- Main Right Content -->
-    <div class="content-area">
-      <!-- Terminal Section -->
-      <div class="terminal-box">
-        <div class="terminal-bar-top">
-          <span>Quick actions:</span>
-          <button class="btn btn-secondary btn-sm" style="padding: 1px 6px; font-size: 0.7rem;" onclick="clearLogs()">Clear Output</button>
+    <main>
+      <!-- Terminal -->
+      <section class="terminal">
+        <div class="shortcuts">
+          <span style="font-size:0.72rem; color:#94a3b8; margin-right:4px;">Shortcuts:</span>
+          <button class="quick-btn" onclick="runCmd('mkdir docs')">mkdir docs</button>
+          <button class="quick-btn" onclick="runCmd('cd docs')">cd docs</button>
+          <button class="quick-btn" onclick="runCmd('cd ..')">cd ..</button>
+          <button class="quick-btn" onclick="runCmd('touch note.txt')">touch note.txt</button>
+          <button class="quick-btn" onclick="runCmd('write note.txt Hello world')">write note.txt Hello world</button>
+          <button class="quick-btn" onclick="runCmd('write note.txt @5 insert')">write note.txt @5 insert</button>
+          <button class="quick-btn" onclick="runCmd('cat note.txt')">cat note.txt</button>
+          <button class="quick-btn" onclick="runCmd('cp note.txt copy.txt')">cp note.txt copy.txt</button>
+          <button class="quick-btn" onclick="runCmd('mv copy.txt backup.txt')">mv copy.txt backup.txt</button>
+          <button class="quick-btn" onclick="runCmd('truncate note.txt 5')">truncate note.txt 5</button>
+          <button class="quick-btn" onclick="runCmd('rm backup.txt')">rm backup.txt</button>
+          <button class="quick-btn" onclick="runCmd('memmap')">memmap</button>
+          <button class="quick-btn danger" onclick="runCmd('reset')">reset</button>
+          <button class="quick-btn" style="margin-left:auto;" onclick="clearLogs()">clear</button>
         </div>
-
-        <div class="quick-cmds">
-          <button class="quick-btn" onclick="runDirectCmd('mkdir docs')">mkdir docs</button>
-          <button class="quick-btn" onclick="runDirectCmd('cd docs')">cd docs</button>
-          <button class="quick-btn" onclick="runDirectCmd('cd ..')">cd ..</button>
-          <button class="quick-btn" onclick="runDirectCmd('touch note.txt')">touch note.txt</button>
-          <button class="quick-btn" onclick="runDirectCmd('write note.txt Hello world')">write note.txt</button>
-          <button class="quick-btn" onclick="runDirectCmd('write note.txt @5 insert')">write @5</button>
-          <button class="quick-btn" onclick="runDirectCmd('cat note.txt')">cat note.txt</button>
-          <button class="quick-btn" onclick="runDirectCmd('cp note.txt copy.txt')">cp copy.txt</button>
-          <button class="quick-btn" onclick="runDirectCmd('mv copy.txt backup.txt')">mv backup.txt</button>
-          <button class="quick-btn" onclick="runDirectCmd('truncate note.txt 5')">truncate 5</button>
-          <button class="quick-btn" onclick="runDirectCmd('rm backup.txt')">rm backup.txt</button>
-          <button class="quick-btn" onclick="runDirectCmd('memmap')">memmap</button>
-          <button class="quick-btn reset-btn" onclick="runDirectCmd('reset')">Reset Storage</button>
+        <div class="cmd-bar">
+          <span class="prompt">$</span>
+          <input type="text" id="cmdInput" placeholder="Enter command (e.g. write note.txt @5 insert)..." onkeydown="if(event.key==='Enter') runCmd(this.value)">
+          <button class="btn btn-primary btn-sm" onclick="runCmd(document.getElementById('cmdInput').value)">Run</button>
         </div>
+        <div class="term-out" id="termLogs"><div class="log-msg">Terminal ready. Click any shortcut or type a command.</div></div>
+      </section>
 
-        <div class="cmd-line">
-          <span class="prompt-char">$</span>
-          <input type="text" id="cmdInput" placeholder="Type a command (Tab completes, Enter runs)..." autocomplete="off" spellcheck="false">
-          <button class="btn btn-primary btn-sm" onclick="sendTerminalCommand()">Run</button>
-        </div>
-
-        <div class="chips-line" id="chipsLine"></div>
-
-        <div class="terminal-logs" id="terminalLogs">
-          <div class="log-out">Terminal ready. Type a command or click any shortcut above.</div>
-        </div>
-      </div>
-
-      <!-- Navigation & Breadcrumbs -->
-      <div class="nav-bar">
-        <div class="breadcrumbs" id="breadcrumbs"></div>
-        <button class="btn btn-secondary btn-sm" id="upBtn" onclick="goUpOneLevel()">⬆ Up</button>
+      <!-- Breadcrumbs -->
+      <div class="nav">
+        <div class="crumbs" id="crumbs"></div>
+        <button class="btn btn-subtle btn-sm" id="upBtn" onclick="navigateUp()">Up ⬆</button>
       </div>
 
       <!-- File Table -->
-      <div class="table-box">
-        <table id="fileTable">
+      <div class="table-wrap">
+        <table>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Size</th>
-              <th>Last Modified</th>
-              <th style="text-align: right;">Actions</th>
+              <th>Name</th><th>Type</th><th>Size</th><th>Last Modified</th><th style="text-align:right;">Actions</th>
             </tr>
           </thead>
-          <tbody id="fileTableBody"></tbody>
+          <tbody id="filesTable"></tbody>
         </table>
-        <div id="emptyNotice" class="empty-text" style="display:none;">This folder is empty.</div>
+        <div id="emptyNotice" style="padding: 24px; text-align: center; color: #64748b; font-size: 0.85rem; display: none;">Folder is empty.</div>
       </div>
-    </div>
+    </main>
   </div>
 </div>
 
 <!-- Text Editor Modal -->
-<div class="modal-overlay" id="editorModal">
-  <div class="modal-box">
-    <div class="modal-top">
-      <h3 id="editorTitle">Edit File</h3>
-      <button class="btn btn-secondary btn-sm" onclick="closeEditor()">✕</button>
-    </div>
-    <div class="modal-content">
-      <textarea id="editorText" spellcheck="false"></textarea>
-    </div>
-    <div class="modal-bottom">
-      <button class="btn btn-secondary" onclick="closeEditor()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveFileContent()">Save Changes</button>
+<div class="modal" id="editorModal">
+  <div class="modal-card">
+    <div class="modal-head"><h3 id="editorTitle" style="font-size:0.9rem;">Edit File</h3><button class="btn btn-subtle btn-sm" onclick="closeModal('editorModal')">✕</button></div>
+    <div class="modal-body"><textarea id="editorText" style="width:100%; height:300px; font-family:monospace; font-size:0.85rem; padding:8px; border:1px solid #cbd5e1; border-radius:4px; outline:none;"></textarea></div>
+    <div class="modal-foot">
+      <button class="btn btn-subtle" onclick="closeModal('editorModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditor()">Save</button>
     </div>
   </div>
 </div>
 
 <!-- Properties Modal -->
-<div class="modal-overlay" id="propertiesModal">
-  <div class="modal-box" style="max-width: 520px;">
-    <div class="modal-top">
-      <h3>File Properties</h3>
-      <button class="btn btn-secondary btn-sm" onclick="closeProperties()">✕</button>
-    </div>
-    <div class="modal-content" id="propertiesContent"></div>
-    <div class="modal-bottom">
-      <button class="btn btn-secondary" onclick="closeProperties()">Close</button>
-    </div>
+<div class="modal" id="propsModal">
+  <div class="modal-card" style="max-width: 500px;">
+    <div class="modal-head"><h3 style="font-size:0.9rem;">File Properties</h3><button class="btn btn-subtle btn-sm" onclick="closeModal('propsModal')">✕</button></div>
+    <div class="modal-body" id="propsBody"></div>
+    <div class="modal-foot"><button class="btn btn-subtle" onclick="closeModal('propsModal')">Close</button></div>
   </div>
 </div>
 
+<div id="toast" class="toast"></div>
+
 <script>
-  let currentDirectory = "";
-  let activeEditorPath = "";
-  let currentItems = [];
+  let currentPath = "";
+  let activeEditFile = "";
 
-  const COMMANDS = [
-    "mkdir", "cd", "touch", "create", "write", "cat", "read", "cp", "copy", "mv", "move", "rm", "delete", "truncate", "memmap", "reset", "clear"
-  ];
-
-  function showMessage(msg, isErr = false) {
+  // Notification helper
+  function toast(msg, isErr = false) {
     const el = document.getElementById("toast");
     el.textContent = msg;
-    el.className = "toast " + (isErr ? "error" : "success");
+    el.className = "toast " + (isErr ? "err" : "ok");
     el.style.display = "block";
-    setTimeout(() => { el.style.display = "none"; }, 3000);
+    setTimeout(() => el.style.display = "none", 3000);
   }
 
-  async function updateAll(path = currentDirectory) {
-    await Promise.all([
-      loadDirectory(path),
-      loadTree()
-    ]);
-  }
-
-  async function loadDirectory(path = "") {
+  // Generic JSON POST helper
+  async function postJson(url, payload) {
     try {
-      const res = await fetch("/api/list?path=" + encodeURIComponent(path));
+      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const data = await res.json();
-      if (!res.ok) {
-        showMessage(data.detail || "Could not read directory.", true);
-        return;
-      }
-      currentDirectory = data.current_path;
-      currentItems = data.items || [];
-      renderBreadcrumbs(currentDirectory);
-      renderTable(currentItems);
-      refreshChips();
+      if (!res.ok) throw new Error(data.detail || "Request failed");
+      return data;
     } catch (err) {
-      showMessage("Server connection failed.", true);
+      toast(err.message, true);
+      return null;
     }
   }
 
+  // Load directory items & refresh tree
+  async function refresh(path = currentPath) {
+    try {
+      const res = await fetch("/api/list?path=" + encodeURIComponent(path));
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Could not list directory");
+      currentPath = data.current_path;
+      renderCrumbs(currentPath);
+      renderTable(data.items || []);
+      loadTree();
+    } catch (err) {
+      toast(err.message, true);
+    }
+  }
+
+  // Recursive tree renderer
   async function loadTree() {
     try {
       const res = await fetch("/tree");
       const tree = await res.json();
-      if (res.ok) {
-        const root = document.getElementById("treeList");
-        root.innerHTML = "";
-        renderBranch(tree, root, 0);
+      const container = document.getElementById("tree");
+      container.innerHTML = "";
+      function walk(node, depth = 0) {
+        const item = document.createElement("div");
+        item.className = "tree-item" + (node.path === currentPath ? " active" : "");
+        item.style.paddingLeft = (depth * 12 + 6) + "px";
+        item.innerHTML = `<span>${node.type === "directory" ? "📁" : "📄"}</span><span>${node.name}</span>`;
+        item.onclick = () => node.type === "directory" ? refresh(node.path) : openEditor(node.path, node.name);
+        container.appendChild(item);
+        if (node.children) node.children.forEach(c => walk(c, depth + 1));
       }
-    } catch (err) {}
+      walk(tree);
+    } catch (e) {}
   }
 
-  function renderBranch(node, parentEl, depth) {
-    const row = document.createElement("div");
-    row.className = "tree-row" + (node.type === "file" ? " file" : "");
-    row.style.paddingLeft = (depth * 14 + 6) + "px";
-
-    if (node.type === "directory") {
-      row.innerHTML = `<span>📁</span> <span>${node.name}</span>`;
-      if (node.path === currentDirectory) {
-        row.classList.add("active");
-      }
-      row.onclick = (e) => {
-        e.stopPropagation();
-        updateAll(node.path);
-      };
-      parentEl.appendChild(row);
-
-      if (node.children && node.children.length > 0) {
-        node.children.forEach(child => renderBranch(child, parentEl, depth + 1));
-      }
-    } else {
-      row.innerHTML = `<span>📄</span> <span>${node.name}</span>`;
-      row.onclick = (e) => {
-        e.stopPropagation();
-        openEditor(node.path, node.name);
-      };
-      parentEl.appendChild(row);
-    }
-  }
-
-  function renderBreadcrumbs(path) {
-    const box = document.getElementById("breadcrumbs");
-    const upBtn = document.getElementById("upBtn");
-    box.innerHTML = "";
-
-    const root = document.createElement("span");
-    root.textContent = "storage";
-    root.className = path === "" ? "crumb current" : "crumb";
-    root.onclick = () => updateAll("");
-    box.appendChild(root);
-
-    if (!path) {
-      upBtn.disabled = true;
-      upBtn.style.opacity = "0.5";
-      return;
-    }
-    upBtn.disabled = false;
-    upBtn.style.opacity = "1";
-
-    const parts = path.split("/").filter(Boolean);
-    let cumulative = "";
-    parts.forEach((part, idx) => {
-      const sep = document.createElement("span");
-      sep.textContent = "/";
-      sep.style.color = "#cbd5e1";
-      box.appendChild(sep);
-
-      cumulative = cumulative ? cumulative + "/" + part : part;
-      const target = cumulative;
-      const item = document.createElement("span");
-      item.textContent = part;
-      if (idx === parts.length - 1) {
-        item.className = "crumb current";
-      } else {
-        item.className = "crumb";
-        item.onclick = () => updateAll(target);
-      }
-      box.appendChild(item);
+  // Render navigation breadcrumbs
+  function renderCrumbs(path) {
+    const box = document.getElementById("crumbs");
+    document.getElementById("upBtn").disabled = !path;
+    const parts = path ? path.split("/").filter(Boolean) : [];
+    let html = `<a onclick="refresh('')">storage</a>`;
+    let accum = "";
+    parts.forEach((p, idx) => {
+      accum = accum ? accum + "/" + p : p;
+      const isLast = idx === parts.length - 1;
+      html += ` / ` + (isLast ? `<span>${p}</span>` : `<a onclick="refresh('${accum}')">${p}</a>`);
     });
+    box.innerHTML = html;
   }
 
-  function goUpOneLevel() {
-    if (!currentDirectory) return;
-    const parts = currentDirectory.split("/").filter(Boolean);
+  function navigateUp() {
+    if (!currentPath) return;
+    const parts = currentPath.split("/").filter(Boolean);
     parts.pop();
-    updateAll(parts.join("/"));
+    refresh(parts.join("/"));
   }
 
+  // Render file list table
   function renderTable(items) {
-    const tbody = document.getElementById("fileTableBody");
-    const emptyNotice = document.getElementById("emptyNotice");
-    tbody.innerHTML = "";
+    const tbody = document.getElementById("filesTable");
+    const empty = document.getElementById("emptyNotice");
+    if (!items.length) { tbody.innerHTML = ""; empty.style.display = "block"; return; }
+    empty.style.display = "none";
 
-    if (!items || items.length === 0) {
-      emptyNotice.style.display = "block";
-      return;
-    }
-    emptyNotice.style.display = "none";
-
-    items.forEach(item => {
-      const tr = document.createElement("tr");
-
-      const tdName = document.createElement("td");
-      const nameSpan = document.createElement("span");
-      nameSpan.className = "item-label";
-      const icon = item.type === "directory" ? "📁" : "📄";
-      nameSpan.innerHTML = `<span>${icon}</span> <span>${item.name}</span>`;
-      if (item.type === "directory") {
-        nameSpan.onclick = () => updateAll(item.path);
-      } else {
-        nameSpan.onclick = () => openEditor(item.path, item.name);
-      }
-      tdName.appendChild(nameSpan);
-
-      const tdType = document.createElement("td");
-      tdType.textContent = item.type === "directory" ? "Folder" : (item.extension || "File");
-
-      const tdSize = document.createElement("td");
-      tdSize.textContent = item.size;
-
-      const tdMod = document.createElement("td");
-      tdMod.textContent = item.modified;
-
-      const tdActions = document.createElement("td");
-      tdActions.className = "action-group";
-
-      if (item.type === "file") {
-        const editBtn = document.createElement("button");
-        editBtn.className = "btn btn-secondary btn-sm";
-        editBtn.textContent = "Edit";
-        editBtn.onclick = () => openEditor(item.path, item.name);
-        tdActions.appendChild(editBtn);
-
-        const dlBtn = document.createElement("button");
-        dlBtn.className = "btn btn-secondary btn-sm";
-        dlBtn.textContent = "Download";
-        dlBtn.onclick = () => { window.location.href = "/api/download?path=" + encodeURIComponent(item.path); };
-        tdActions.appendChild(dlBtn);
-      } else {
-        const openBtn = document.createElement("button");
-        openBtn.className = "btn btn-secondary btn-sm";
-        openBtn.textContent = "Open";
-        openBtn.onclick = () => updateAll(item.path);
-        tdActions.appendChild(openBtn);
-      }
-
-      const renBtn = document.createElement("button");
-      renBtn.className = "btn btn-secondary btn-sm";
-      renBtn.textContent = "Rename";
-      renBtn.onclick = () => promptRename(item.path, item.name);
-      tdActions.appendChild(renBtn);
-
-      const propBtn = document.createElement("button");
-      propBtn.className = "btn btn-secondary btn-sm";
-      propBtn.textContent = "Info";
-      propBtn.onclick = () => showProperties(item.path);
-      tdActions.appendChild(propBtn);
-
-      const delBtn = document.createElement("button");
-      delBtn.className = "btn btn-danger btn-sm";
-      delBtn.textContent = "Delete";
-      delBtn.onclick = () => promptDelete(item.path, item.name, item.type);
-      tdActions.appendChild(delBtn);
-
-      tr.appendChild(tdName);
-      tr.appendChild(tdType);
-      tr.appendChild(tdSize);
-      tr.appendChild(tdMod);
-      tr.appendChild(tdActions);
-      tbody.appendChild(tr);
-    });
+    tbody.innerHTML = items.map(item => `
+      <tr>
+        <td>
+          <span style="cursor:pointer; font-weight:500;" onclick="${item.type === 'directory' ? `refresh('${item.path}')` : `openEditor('${item.path}', '${item.name}')`}">
+            ${item.type === 'directory' ? '📁' : '📄'} ${item.name}
+          </span>
+        </td>
+        <td>${item.type === 'directory' ? 'Folder' : (item.extension || 'File')}</td>
+        <td>${item.size}</td>
+        <td>${item.modified}</td>
+        <td class="actions">
+          ${item.type === 'file' ? `
+            <button class="btn btn-subtle btn-sm" onclick="openEditor('${item.path}', '${item.name}')">Edit</button>
+            <a class="btn btn-subtle btn-sm" style="text-decoration:none;" href="/api/download?path=${encodeURIComponent(item.path)}">Download</a>
+          ` : `
+            <button class="btn btn-subtle btn-sm" onclick="refresh('${item.path}')">Open</button>
+          `}
+          <button class="btn btn-subtle btn-sm" onclick="renameItem('${item.path}', '${item.name}')">Rename</button>
+          <button class="btn btn-subtle btn-sm" onclick="showProps('${item.path}')">Info</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteItem('${item.path}', '${item.name}')">Delete</button>
+        </td>
+      </tr>
+    `).join("");
   }
 
-  // Quick Action Buttons
-  async function runDirectCmd(cmd) {
-    document.getElementById("cmdInput").value = cmd;
-    await sendTerminalCommand();
-  }
-
-  // Terminal Execution
-  async function sendTerminalCommand() {
+  // Terminal commands
+  async function runCmd(cmd) {
     const input = document.getElementById("cmdInput");
-    const raw = input.value.trim();
+    const raw = (cmd || "").trim();
     if (!raw) return;
-
     input.value = "";
-    if (raw === "clear") {
-      clearLogs();
-      return;
-    }
+    if (raw === "clear") { clearLogs(); return; }
 
-    addLogLine("$ " + raw, "cmd");
-
-    try {
-      const res = await fetch("/run", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ current_path: currentDirectory, command: raw })
-      });
-      const data = await res.json();
-
-      if (data.output === "__CLEAR__") {
-        clearLogs();
-        return;
-      }
-
-      const isErr = data.output.startsWith("Error:") || data.output.startsWith("Unknown command:");
-      addLogLine(data.output, isErr ? "err" : "out");
-
-      currentDirectory = data.current_path;
-      updateAll(currentDirectory);
-    } catch (err) {
-      addLogLine("Error: Request failed.", "err");
-    }
+    log(`$ ${raw}`, "cmd");
+    const res = await postJson("/run", { current_path: currentPath, command: raw });
+    if (!res) return;
+    if (res.output === "__CLEAR__") { clearLogs(); return; }
+    log(res.output, res.output.startsWith("Error:") ? "err" : "msg");
+    currentPath = res.current_path;
+    refresh(currentPath);
   }
 
-  function addLogLine(text, kind) {
-    const box = document.getElementById("terminalLogs");
+  function log(text, type = "msg") {
+    const box = document.getElementById("termLogs");
     const div = document.createElement("div");
-    if (kind === "cmd") div.className = "log-cmd";
-    else if (kind === "err") div.className = "log-err";
-    else div.className = "log-out";
+    div.className = "log-" + type;
     div.textContent = text;
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
   }
 
   function clearLogs() {
-    document.getElementById("terminalLogs").innerHTML = `<div class="log-out">Terminal output cleared.</div>`;
+    document.getElementById("termLogs").innerHTML = `<div class="log-msg">Terminal output cleared.</div>`;
   }
 
-  // Suggestions
-  function refreshChips() {
-    const box = document.getElementById("chipsLine");
-    const input = document.getElementById("cmdInput");
-    const val = input.value;
-    box.innerHTML = "";
+  // Modals & File Actions
+  function closeModal(id) { document.getElementById(id).classList.remove("open"); }
 
-    let list = [];
-    if (!val) {
-      list = ["mkdir", "cd", "touch", "write", "cat", "cp", "mv", "rm", "truncate", "memmap"];
-    } else {
-      const parts = val.split(" ");
-      if (parts.length === 1) {
-        const prefix = parts[0].toLowerCase();
-        list = COMMANDS.filter(c => c.startsWith(prefix));
-      } else {
-        const prefix = parts[parts.length - 1].toLowerCase();
-        const names = currentItems.map(i => i.name);
-        list = names.filter(n => n.toLowerCase().startsWith(prefix));
-      }
-    }
-
-    list.slice(0, 8).forEach(item => {
-      const chip = document.createElement("span");
-      chip.className = "cmd-chip";
-      chip.textContent = item;
-      chip.onclick = () => fillChip(item);
-      box.appendChild(chip);
-    });
-  }
-
-  function fillChip(text) {
-    const input = document.getElementById("cmdInput");
-    const val = input.value;
-    if (!val || !val.includes(" ")) {
-      input.value = text + " ";
-    } else {
-      const parts = val.split(" ");
-      parts[parts.length - 1] = text;
-      input.value = parts.join(" ");
-    }
-    input.focus();
-    refreshChips();
-  }
-
-  document.getElementById("cmdInput").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      sendTerminalCommand();
-    } else if (e.key === "Tab") {
-      e.preventDefault();
-      const first = document.querySelector("#chipsLine .cmd-chip");
-      if (first) fillChip(first.textContent);
-    }
-  });
-
-  document.getElementById("cmdInput").addEventListener("input", refreshChips);
-
-  // File & Folder Operations
   async function promptNewFolder() {
     const name = prompt("Folder name:");
     if (!name) return;
-    try {
-      const res = await fetch("/api/folder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path: currentDirectory, name })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        showMessage(data.detail || "Could not create folder.", true);
-      } else {
-        showMessage(data.message);
-        updateAll(currentDirectory);
-      }
-    } catch (err) {
-      showMessage("Error creating folder.", true);
-    }
+    const res = await postJson("/api/folder", { path: currentPath, name });
+    if (res) { toast(res.message); refresh(); }
   }
 
-  async function uploadSelectedFile(e) {
+  async function uploadFile(e) {
     const file = e.target.files[0];
     if (!file) return;
-
     const form = new FormData();
-    form.append("path", currentDirectory);
+    form.append("path", currentPath);
     form.append("file", file);
-
     try {
       const res = await fetch("/api/upload", { method: "POST", body: form });
       const data = await res.json();
-      if (!res.ok) {
-        showMessage(data.detail || "Upload failed.", true);
-      } else {
-        showMessage(data.message);
-        updateAll(currentDirectory);
-      }
-    } catch (err) {
-      showMessage("Error uploading file.", true);
-    } finally {
-      e.target.value = "";
-    }
+      if (!res.ok) throw new Error(data.detail || "Upload failed");
+      toast(data.message);
+      refresh();
+    } catch (err) { toast(err.message, true); }
+    finally { e.target.value = ""; }
   }
 
-  async function promptRename(path, oldName) {
-    const newName = prompt("New name:", oldName);
-    if (!newName || newName === oldName) return;
-
-    try {
-      const res = await fetch("/api/rename", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path, new_name: newName })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        showMessage(data.detail || "Rename failed.", true);
-      } else {
-        showMessage(data.message);
-        updateAll(currentDirectory);
-      }
-    } catch (err) {
-      showMessage("Error renaming item.", true);
-    }
+  async function renameItem(path, oldName) {
+    const new_name = prompt("New name:", oldName);
+    if (!new_name || new_name === oldName) return;
+    const res = await postJson("/api/rename", { path, new_name });
+    if (res) { toast(res.message); refresh(); }
   }
 
-  async function promptDelete(path, name, type) {
-    const ok = window.confirm(`Delete ${type} "${name}"?`);
-    if (!ok) return;
-
-    try {
-      const res = await fetch("/api/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        showMessage(data.detail || "Delete failed.", true);
-      } else {
-        showMessage(data.message);
-        updateAll(currentDirectory);
-      }
-    } catch (err) {
-      showMessage("Error deleting item.", true);
-    }
+  async function deleteItem(path, name) {
+    if (!confirm(`Delete "${name}"?`)) return;
+    const res = await postJson("/api/delete", { path });
+    if (res) { toast(res.message); refresh(); }
   }
 
   async function openEditor(path, name) {
     try {
       const res = await fetch("/api/read?path=" + encodeURIComponent(path));
       const data = await res.json();
-      if (!res.ok) {
-        showMessage(data.detail || "Cannot open file.", true);
-        return;
-      }
-      activeEditorPath = path;
+      if (!res.ok) throw new Error(data.detail);
+      activeEditFile = path;
       document.getElementById("editorTitle").textContent = "Editing: " + name;
       document.getElementById("editorText").value = data.content;
-      document.getElementById("editorModal").classList.add("active");
-    } catch (err) {
-      showMessage("Error opening file.", true);
-    }
+      document.getElementById("editorModal").classList.add("open");
+    } catch (err) { toast(err.message, true); }
   }
 
-  function closeEditor() {
-    document.getElementById("editorModal").classList.remove("active");
-    activeEditorPath = "";
-  }
-
-  async function saveFileContent() {
-    if (!activeEditorPath) return;
+  async function saveEditor() {
+    if (!activeEditFile) return;
     const content = document.getElementById("editorText").value;
-    try {
-      const res = await fetch("/api/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path: activeEditorPath, content })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        showMessage(data.detail || "Save failed.", true);
-      } else {
-        showMessage(data.message);
-        closeEditor();
-        updateAll(currentDirectory);
-      }
-    } catch (err) {
-      showMessage("Error saving file.", true);
-    }
+    const res = await postJson("/api/save", { path: activeEditFile, content });
+    if (res) { toast(res.message); closeModal("editorModal"); refresh(); }
   }
 
-  async function showProperties(path) {
+  async function showProps(path) {
     try {
       const res = await fetch("/api/properties?path=" + encodeURIComponent(path));
-      const data = await res.json();
-      if (!res.ok) {
-        showMessage(data.detail || "Properties not found.", true);
-        return;
-      }
-      const box = document.getElementById("propertiesContent");
-      
-      const fileAllocationHtml = data.type === "file" ? `
-        <div class="prop-item"><span class="prop-k">Allocation:</span><span class="prop-v">${data.allocated_bytes} bytes (${data.blocks} block${data.blocks === 1 ? '' : 's'} of 4 KB) <br><small style="color:#64748b;">(Estimated assuming standard 4 KB cluster blocks)</small></span></div>
-        <div class="prop-item"><span class="prop-k">Internal Fragmentation:</span><span class="prop-v">${data.slack_bytes} bytes slack space (unused space in final block)</span></div>
-      ` : '';
-
-      box.innerHTML = `
-        <div class="prop-item"><span class="prop-k">Name:</span><span class="prop-v">${data.name}</span></div>
-        <div class="prop-item"><span class="prop-k">Type:</span><span class="prop-v">${data.type}</span></div>
-        <div class="prop-item"><span class="prop-k">Extension:</span><span class="prop-v">${data.extension || "none"}</span></div>
-        <div class="prop-item"><span class="prop-k">Permissions:</span><span class="prop-v">${data.permissions} (octal: ${data.mode_octal}) &mdash; Read-only: ${data.readonly ? "Yes" : "No"} <br><small style="color:#64748b;">(Read-only flag on Windows; Linux stores owner/group/other rwx bits in inode)</small></span></div>
-        <div class="prop-item"><span class="prop-k">Logical Size:</span><span class="prop-v">${data.size} (${data.size_bytes} bytes)</span></div>
-        ${fileAllocationHtml}
-        <div class="prop-item"><span class="prop-k">Created:</span><span class="prop-v">${data.created}</span></div>
-        <div class="prop-item"><span class="prop-k">Modified:</span><span class="prop-v">${data.modified}</span></div>
-        <div class="prop-item"><span class="prop-k">Relative Path:</span><span class="prop-v">storage/${data.path}</span></div>
-        <div class="prop-item"><span class="prop-k">Full Path:</span><span class="prop-v">${data.full_path}</span></div>
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.detail);
+      const alloc = d.type === "file" ? `
+        <div class="prop-row"><span class="prop-k">Allocation:</span><span class="prop-v">${d.allocated_bytes} bytes (${d.blocks} block${d.blocks === 1 ? '' : 's'} of 4 KB)<br><small style="color:#64748b;">(Assuming 4 KB cluster blocks)</small></span></div>
+        <div class="prop-row"><span class="prop-k">Internal Fragmentation:</span><span class="prop-v">${d.slack_bytes} bytes slack space</span></div>
+      ` : "";
+      document.getElementById("propsBody").innerHTML = `
+        <div class="prop-row"><span class="prop-k">Name:</span><span class="prop-v">${d.name}</span></div>
+        <div class="prop-row"><span class="prop-k">Type:</span><span class="prop-v">${d.type}</span></div>
+        <div class="prop-row"><span class="prop-k">Logical Size:</span><span class="prop-v">${d.size} (${d.size_bytes} bytes)</span></div>
+        ${alloc}
+        <div class="prop-row"><span class="prop-k">Permissions:</span><span class="prop-v">${d.permissions} (${d.mode_octal}) - Read-only: ${d.readonly ? "Yes" : "No"}</span></div>
+        <div class="prop-row"><span class="prop-k">Last Modified:</span><span class="prop-v">${d.modified}</span></div>
+        <div class="prop-row"><span class="prop-k">Relative Path:</span><span class="prop-v">storage/${d.path}</span></div>
       `;
-      document.getElementById("propertiesModal").classList.add("active");
-    } catch (err) {
-      showMessage("Error fetching properties.", true);
-    }
+      document.getElementById("propsModal").classList.add("open");
+    } catch (err) { toast(err.message, true); }
   }
 
-  function closeProperties() {
-    document.getElementById("propertiesModal").classList.remove("active");
-  }
-
-  // Search filter
+  // Live search filter
   let searchTimer = null;
-  document.getElementById("searchInput").addEventListener("input", (e) => {
+  function onSearch(e) {
     clearTimeout(searchTimer);
     const q = e.target.value.trim();
-    if (!q) {
-      updateAll(currentDirectory);
-      return;
-    }
+    if (!q) { refresh(); return; }
     searchTimer = setTimeout(async () => {
       try {
         const res = await fetch("/api/search?q=" + encodeURIComponent(q));
         const data = await res.json();
-        if (res.ok) {
-          renderTable(data.results);
-        }
-      } catch (err) {
-        showMessage("Search error.", true);
-      }
-    }, 250);
-  });
+        if (res.ok) renderTable(data.results);
+      } catch (e) {}
+    }, 200);
+  }
 
-  // Start
-  updateAll("");
+  // Initial load
+  refresh("");
 </script>
 
 </body>
