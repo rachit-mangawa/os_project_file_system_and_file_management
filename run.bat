@@ -1,5 +1,6 @@
 @echo off
 cd /d "%~dp0"
+rem Stop any process listening on port 8000 to prevent port binding conflicts
 powershell -NoProfile -Command "Stop-Process -Id (Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue).OwningProcess -Force -ErrorAction SilentlyContinue" >nul 2>&1
 where uv >nul 2>&1
 if not errorlevel 1 goto with_uv
@@ -12,7 +13,8 @@ goto start_server
 if not exist .venv uv venv
 uv pip install fastapi uvicorn python-multipart
 :start_server
-start "" http://127.0.0.1:8000
+rem Note: Start browser with a brief delay so uvicorn binds port 8000 first
+start "" /min cmd /c "timeout /t 2 /nobreak >nul && start http://127.0.0.1:8000"
 .venv\Scripts\python main.py
 if errorlevel 1 goto error
 exit /b

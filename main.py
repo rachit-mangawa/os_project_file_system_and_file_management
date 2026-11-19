@@ -146,7 +146,10 @@ def rename_item(req: RenameRequest):
     if destination.exists():
         raise HTTPException(status_code=400, detail="An item with the new name already exists.")
 
-    target.rename(destination)
+    try:
+        target.rename(destination)
+    except OSError as e:
+        raise HTTPException(status_code=400, detail=f"Cannot rename item: {e.strerror or str(e)}")
     return {"message": "Item renamed successfully."}
 
 
@@ -158,10 +161,13 @@ def api_delete_item(req: DeleteRequest):
     if target == STORAGE_DIR.resolve():
         raise HTTPException(status_code=400, detail="Cannot delete the root storage folder.")
 
-    if target.is_dir():
-        shutil.rmtree(target)
-    else:
-        target.unlink()
+    try:
+        if target.is_dir():
+            shutil.rmtree(target)
+        else:
+            target.unlink()
+    except OSError as e:
+        raise HTTPException(status_code=400, detail=f"Cannot delete item: {e.strerror or str(e)}")
 
     return {"message": "Deleted successfully."}
 

@@ -70,10 +70,18 @@ def move_item(current_dir: str, args: list) -> tuple[str, str]:
     dst = resolve_safe_path(f"{current_dir}/{args[1]}")
     if dst.is_dir() and src.parent != dst:
         dst = dst / src.name
+
+    if src == dst:
+        return ("Error: Source and destination are the same.", current_dir)
+    if src.is_dir() and (src == dst or src in dst.parents):
+        return ("Error: Cannot move a directory into itself or its own subfolder.", current_dir)
     if dst.exists():
         return (f"Error: Destination '{args[1]}' already exists.", current_dir)
 
-    src.rename(dst)
+    try:
+        src.rename(dst)
+    except OSError as err:
+        return (f"Error: {err.strerror or str(err)}", current_dir)
     return (f"Moved '{args[0]}' to '{args[1]}'.", current_dir)
 
 
@@ -89,13 +97,21 @@ def copy_item(current_dir: str, args: list) -> tuple[str, str]:
     dst = resolve_safe_path(f"{current_dir}/{args[1]}")
     if dst.is_dir() and src.parent != dst:
         dst = dst / src.name
+
+    if src == dst:
+        return ("Error: Source and destination are the same.", current_dir)
+    if src.is_dir() and (src == dst or src in dst.parents):
+        return ("Error: Cannot copy a directory into itself or its own subfolder.", current_dir)
     if dst.exists():
         return (f"Error: Destination '{args[1]}' already exists.", current_dir)
 
-    if src.is_dir():
-        shutil.copytree(src, dst)
-    else:
-        shutil.copy2(src, dst)
+    try:
+        if src.is_dir():
+            shutil.copytree(src, dst)
+        else:
+            shutil.copy2(src, dst)
+    except OSError as err:
+        return (f"Error: {err.strerror or str(err)}", current_dir)
     return (f"Copied '{args[0]}' to '{args[1]}'.", current_dir)
 
 
@@ -113,16 +129,18 @@ def write_to_file(current_dir: str, args: list) -> tuple[str, str]:
             return ("Error: Offset must be a positive number.", current_dir)
         offset = int(offset_val)
         text = " ".join(args[2:])
+        data = text.encode("utf-8")
         if not target.exists():
             target.touch()
         with open(target, "r+b") as f:
             f.seek(offset)
-            f.write(text.encode("utf-8"))
-        return (f"Wrote {len(text)} bytes to '{name}' at offset {offset}.", current_dir)
+            f.write(data)
+        return (f"Wrote {len(data)} bytes to '{name}' at offset {offset}.", current_dir)
     else:
         text = " ".join(args[1:])
-        target.write_text(text, encoding="utf-8")
-        return (f"Wrote {len(text)} bytes to '{name}'.", current_dir)
+        data = text.encode("utf-8")
+        target.write_bytes(data)
+        return (f"Wrote {len(data)} bytes to '{name}'.", current_dir)
 
 
 def read_from_file(current_dir: str, args: list) -> tuple[str, str]:

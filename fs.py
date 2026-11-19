@@ -69,17 +69,30 @@ def get_item_info(target_path: Path) -> dict:
     }
 
 
-def build_tree(folder: Path) -> dict:
+def build_tree(folder: Path, max_depth: int = 15, current_depth: int = 0) -> dict:
+    if current_depth > max_depth:
+        return {"name": folder.name, "path": "", "type": "directory", "children": []}
+
     folders = []
     files = []
-    for entry in sorted(folder.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower())):
-        rel = str(entry.relative_to(STORAGE_DIR)).replace("\\", "/")
-        if rel == ".":
-            rel = ""
-        if entry.is_dir():
-            folders.append(build_tree(entry))
-        else:
-            files.append({"name": entry.name, "path": rel, "type": "file"})
+    try:
+        entries = sorted(folder.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower()))
+    except OSError:
+        entries = []
+
+    for entry in entries:
+        try:
+            if entry.is_symlink():
+                continue
+            rel = str(entry.relative_to(STORAGE_DIR)).replace("\\", "/")
+            if rel == ".":
+                rel = ""
+            if entry.is_dir():
+                folders.append(build_tree(entry, max_depth, current_depth + 1))
+            else:
+                files.append({"name": entry.name, "path": rel, "type": "file"})
+        except OSError:
+            continue
 
     rel_folder = str(folder.relative_to(STORAGE_DIR)).replace("\\", "/")
     if rel_folder == ".":

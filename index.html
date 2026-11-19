@@ -389,7 +389,8 @@
         <div class="prop-row"><span class="prop-k">Type:</span><span class="prop-v">${d.type}</span></div>
         <div class="prop-row"><span class="prop-k">Logical Size:</span><span class="prop-v">${d.size} (${d.size_bytes} bytes)</span></div>
         ${alloc}
-        <div class="prop-row"><span class="prop-k">Permissions:</span><span class="prop-v">${d.permissions} (${d.mode_octal}) - Read-only: ${d.readonly ? "Yes" : "No"}</span></div>
+        <div class="prop-row"><span class="prop-k">Permissions:</span><span class="prop-v">${d.permissions} (${d.mode_octal}) - Read-only: ${d.readonly ? "Yes" : "No"}<br><small style="color:#64748b;">(Derived from write bit on Windows read-only flag; Linux stores full rwx bits in inode)</small></span></div>
+        <div class="prop-row"><span class="prop-k">Created (st_ctime):</span><span class="prop-v">${d.created}<br><small style="color:#64748b;">(Creation time on Windows NTFS; metadata change time on Linux)</small></span></div>
         <div class="prop-row"><span class="prop-k">Last Modified:</span><span class="prop-v">${d.modified}</span></div>
         <div class="prop-row"><span class="prop-k">Relative Path:</span><span class="prop-v">storage/${d.path}</span></div>
       `;
