@@ -78,6 +78,21 @@ A command line right above the file table with quick action buttons:
 
 ---
 
+## Screenshots
+
+### File Manager Interface
+![Web GUI Dashboard](fig_gui_dashboard.png)
+
+### Terminal Commands & Block Usage Map
+![Terminal Operations](fig_terminal_commands.png)
+
+![Block Map memmap](fig_block_allocation_memmap.png)
+
+### Properties & Slack Space
+![File Properties Modal](fig_file_properties_modal.png)
+
+---
+
 ## Operating System Concepts & Notes
 
 ### 1. Inode Metadata & Permissions (`st_mode`)
